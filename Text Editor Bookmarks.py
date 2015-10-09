@@ -14,7 +14,7 @@ exists = False
 
 class BookmarksLineNumbersPropertiesGroup(bpy.types.PropertyGroup):
     
-    rowNumber = bpy.props.IntProperty()
+    row_number = bpy.props.IntProperty()
     
  
 bpy.utils.register_class(BookmarksLineNumbersPropertiesGroup)   
@@ -23,7 +23,7 @@ bpy.utils.register_class(BookmarksLineNumbersPropertiesGroup)
     
 class detectionBookmarksPropertiesGroup(bpy.types.PropertyGroup):
     
-    rowNumber = bpy.props.IntProperty()    
+    row_number = bpy.props.IntProperty()    
     
     
 bpy.utils.register_class(detectionBookmarksPropertiesGroup)
@@ -154,7 +154,7 @@ def printList():
         for bookmark in textblock.bookmarks_line_number:
             
             print("    Bookmark: "+bookmark.name)
-            print("    Row number:"+str(bookmark.rowNumber))    
+            print("    Row number:"+str(bookmark.row_number))    
             print("")
 printList()
 
@@ -187,14 +187,15 @@ def bookmarkListAdd():
         else:                  
             newBookmark.name = inputBookmarkName
          
-    newBookmark.rowNumber = line_index
-    
+    newBookmark.row_number = line_index
+        
     printList() 
 
 
 
 def detectTextblock():
     global exists
+    global bookmarkList
         
     for textBlock in bpy.context.scene.text_blocks:
         if bpy.context.area.spaces.active.text.name == textBlock.name:
@@ -207,7 +208,14 @@ def detectTextblock():
     if exists:
         #print("Text file does have bookmarks, use existing bookmark collection")
         textBlock = bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name]
-        bookmarkList = textBlock.bookmarks_line_number    
+        
+        if bpy.context.scene.bookmark_type == "Line Number":    
+            
+            bookmarkList = textBlock.bookmarks_line_number  
+        
+        elif bpy.context.scene.bookmark_type == "Detection":
+            
+            bookmarkList = textBlock.bookmarks_detection
         
     else:
         newTextBlock = bpy.context.scene.text_blocks.add()
@@ -216,22 +224,24 @@ def detectTextblock():
         textBlock = bpy.context.scene.text_blocks[len(bpy.context.scene.text_blocks)-1]
         
     return textBlock
-    
-    
+      
     
 def bookmarkListRemove(self):
     
-    for i, bookmark in enumerate(bookmarkList):   
+    for i, bookmark in enumerate(bookmarkList):
+        print(bookmark)   
         if bookmark.name == self.bookmarkName:
             bookmarkList.remove(i)
     printList()
  
         
 def bookmarkListSelect(self):
-    
+
+    print(bookmarkList)
     for bookmark in bookmarkList:   
+        print(bookmark)
         if bookmark.name == self.bookmarkName:
-            bpy.context.area.spaces.active.text.current_line_index = bookmark.rowNumber
+            bpy.context.area.spaces.active.text.current_line_index = bookmark.row_number
                 
     
     
@@ -290,6 +300,7 @@ def bookmarkListDetect():
             
             newBookmark = textBlock.bookmarks_detection.add()
             newBookmark.name = line.body
+            newBookmark.row_number = index
             bookmarkList = textBlock.bookmarks_detection 
     
 
@@ -368,7 +379,7 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
                     bookmarkName = bookmark.name                                         
                     
                     row = layout.row(align=True)
-                    row.operator('text.bookmark_list_select',text = bookmarkName)   
+                    row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
