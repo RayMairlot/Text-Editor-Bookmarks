@@ -12,14 +12,12 @@ exists = False
 #bpy.context.scene.text_blocks.clear()
 
 
-
-
 class bookmarksPropertiesGroup(bpy.types.PropertyGroup):
+    
     rowNumber = bpy.props.IntProperty()
     
-    
+ 
 bpy.utils.register_class(bookmarksPropertiesGroup)
-
 
 
 
@@ -27,19 +25,20 @@ class textblocksPropertiesGroup(bpy.types.PropertyGroup):
 
     bookmarks = bpy.props.CollectionProperty(type=bookmarksPropertiesGroup)
    
+   
 bpy.utils.register_class(textblocksPropertiesGroup)
-
-
 
 
 bpy.types.Scene.text_blocks = bpy.props.CollectionProperty(type=textblocksPropertiesGroup)
 
-
-#newTextBlock = bpy.context.scene.text_blocks.add()
-#newTextBlock.name = "Text Editor Bookmarks.py"
-
-
 bpy.types.Scene.bookmark_name = bpy.props.StringProperty(description="Name of the new bookmark", default="Bookmark 1")
+
+bpy.types.Scene.bookmark_type = bpy.props.EnumProperty(description = "The type of bookmark to manage", 
+                                                       items = [("Line Number","Line Number","Line Number"),
+                                                              ("Detection","Detection","Detection")]       
+                                                       )
+                                                                                                      
+
 bpy.context.scene.bookmark_name = "Bookmark"
 
 
@@ -59,6 +58,7 @@ class BOOKMARK_LIST_OT_add(bpy.types.Operator):
         return{'FINISHED'}
 
 
+
 class BOOKMARK_LIST_OT_del(bpy.types.Operator):
     """Delete bookmark"""
     bl_idname      = 'text.bookmark_list_remove'
@@ -71,6 +71,7 @@ class BOOKMARK_LIST_OT_del(bpy.types.Operator):
         bookmarkListRemove(self) 
 
         return{'FINISHED'}
+
 
 
 class BOOKMARK_LIST_OT_select(bpy.types.Operator):
@@ -87,6 +88,7 @@ class BOOKMARK_LIST_OT_select(bpy.types.Operator):
         return{'FINISHED'}
    
     
+    
 class BOOKMARK_LIST_OT_reorder(bpy.types.Operator):
     """Reorder bookmarks"""
     bl_idname      = 'text.bookmark_list_reorder'
@@ -97,6 +99,7 @@ class BOOKMARK_LIST_OT_reorder(bpy.types.Operator):
         bookmarkListReorder() 
 
         return{'FINISHED'}  
+    
     
     
 class BOOKMARK_LIST_OT_move(bpy.types.Operator):
@@ -112,6 +115,7 @@ class BOOKMARK_LIST_OT_move(bpy.types.Operator):
         bookmarkListMove(self) 
 
         return{'FINISHED'}        
+
 
 
 def printList():
@@ -130,7 +134,6 @@ def printList():
             print("    Row number:"+str(bookmark.rowNumber))    
             print("")
 printList()
-
 
 
 
@@ -201,6 +204,7 @@ def bookmarkListSelect(self):
             bpy.context.area.spaces.active.text.current_line_index = bookmark.rowNumber
                 
     
+    
 def bookmarkListReorder():
     global reordering
     global reorderingLabel
@@ -211,6 +215,7 @@ def bookmarkListReorder():
     else:
         reordering = True    
         reorderingLabel = "Finish reordering"
+
 
 
 def bookmarkListMove(self):
@@ -238,59 +243,76 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
         global bookmarkList
         
         layout= self.layout
+        
         row = layout.row()
-        row.operator('text.bookmark_list_add', text="Add new bookmark", icon="ZOOMIN")
-        row = layout.row()
-        row.label(text="Bookmark Name:")
-        row = layout.row()
-        row.prop(bpy.context.scene, "bookmark_name",text="")
-        row = layout.row()
-        row.prop(bpy.context.area.spaces.active.text, "current_line_index", text="At Line")
-        row = layout.row()
-        row.label(text="Bookmark List:")
-
-        if len(bookmarkList)<1:
+        row.label(text="Bookmark type:")
+        row = layout.row();
+        row.prop(bpy.context.scene, "bookmark_type", expand=True)
+        
+        if bpy.context.scene.bookmark_type == "Line Number":
+        
             row = layout.row()
-            row.enabled = False
-            row.label(text="No bookmarks yet")
-            
-        if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
-            for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks:   
+            row.operator('text.bookmark_list_add', text="Add new bookmark", icon="ZOOMIN")
+            row = layout.row()
+            row.label(text="Bookmark Name:")
+            row = layout.row()
+            row.prop(bpy.context.scene, "bookmark_name",text="")
+            row = layout.row()
+            row.prop(bpy.context.area.spaces.active.text, "current_line_index", text="At Line")
+            row = layout.row()
+            row.label(text="Bookmark List:")
 
-                bookmarkName = bookmark.name
-                 
-                col = layout.column(align=True)
+            if len(bookmarkList)<1:
+                row = layout.row()
+                row.enabled = False
+                row.label(text="No bookmarks yet")
                 
-                if reordering:
+            if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
+                for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks:   
+
+                    bookmarkName = bookmark.name
+                     
+                    col = layout.column(align=True)
+                    
+                    if reordering:
+                        row = col.row(align=True)
+                        operatorProps = row.operator('text.bookmark_list_move',text = "", icon="TRIA_UP")
+                        operatorProps.direction = "Up"
+                        operatorProps.bookmarkName = bookmarkName 
+                    
                     row = col.row(align=True)
-                    operatorProps = row.operator('text.bookmark_list_move',text = "", icon="TRIA_UP")
-                    operatorProps.direction = "Up"
-                    operatorProps.bookmarkName = bookmarkName 
-                
-                row = col.row(align=True)
-                row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName            
-                row.operator('text.bookmark_list_remove',text ="", icon="X").bookmarkName = bookmarkName            
-                
-                if reordering:
-                    row = col.row(align=True)
-                    operatorProps = row.operator('text.bookmark_list_move',text = "", icon="TRIA_DOWN")
-                    operatorProps.direction = "Down"
-                    operatorProps.bookmarkName = bookmarkName  
-               
-        row = layout.row(align=True)
-        row.enabled = len(bookmarkList)>1
-        row.operator('text.bookmark_list_reorder',text = reorderingLabel, icon="SEQ_SEQUENCER")                          
+                    row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName            
+                    row.operator('text.bookmark_list_remove',text ="", icon="X").bookmarkName = bookmarkName            
+                    
+                    if reordering:
+                        row = col.row(align=True)
+                        operatorProps = row.operator('text.bookmark_list_move',text = "", icon="TRIA_DOWN")
+                        operatorProps.direction = "Down"
+                        operatorProps.bookmarkName = bookmarkName  
+                   
+            row = layout.row(align=True)
+            row.enabled = len(bookmarkList)>1
+            row.operator('text.bookmark_list_reorder',text = reorderingLabel, icon="SEQ_SEQUENCER")                          
+        
+        elif bpy.context.scene.bookmark_type == "Detection":
+            
+            row = layout.row()
+            row.label(text="Detection")
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
 
 
+
 classes = [BOOKMARK_LIST_PT, BOOKMARK_LIST_OT_add, BOOKMARK_LIST_OT_del, BOOKMARK_LIST_OT_select, BOOKMARK_LIST_OT_reorder, 
            BOOKMARK_LIST_OT_move]
+
 
 def register():
     for className in classes:
         bpy.utils.register_class(className) 
+
+
 
 def unregister():
     for className in classes:
