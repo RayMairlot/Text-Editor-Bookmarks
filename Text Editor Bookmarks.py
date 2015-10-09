@@ -12,18 +12,29 @@ exists = False
 #bpy.context.scene.text_blocks.clear()
 
 
-class bookmarksPropertiesGroup(bpy.types.PropertyGroup):
+class BookmarksLineNumbersPropertiesGroup(bpy.types.PropertyGroup):
     
     rowNumber = bpy.props.IntProperty()
     
  
-bpy.utils.register_class(bookmarksPropertiesGroup)
+bpy.utils.register_class(BookmarksLineNumbersPropertiesGroup)   
+ 
+ 
+    
+class detectionBookmarksPropertiesGroup(bpy.types.PropertyGroup):
+    
+    rowNumber = bpy.props.IntProperty()    
+    
+    
+bpy.utils.register_class(detectionBookmarksPropertiesGroup)
 
 
 
 class textblocksPropertiesGroup(bpy.types.PropertyGroup):
 
-    bookmarks = bpy.props.CollectionProperty(type=bookmarksPropertiesGroup)
+    bookmarks_line_number = bpy.props.CollectionProperty(type=BookmarksLineNumbersPropertiesGroup)
+    
+    bookmarks_detection = bpy.props.CollectionProperty(type=detectionBookmarksPropertiesGroup)
    
    
 bpy.utils.register_class(textblocksPropertiesGroup)
@@ -118,6 +129,18 @@ class BOOKMARK_LIST_OT_move(bpy.types.Operator):
 
 
 
+class BOOKMARK_LIST_OT_detect(bpy.types.Operator):
+    """Analyse the text block for bookmarks"""
+    bl_idname = 'text.bookmark_list_detect'
+    bl_label = "Detect Bookmarks"
+
+    def execute(self, context):
+
+        bookmarkListDetect()
+
+        return{'FINISHED'}
+
+
 def printList():
       
     print("")
@@ -128,7 +151,7 @@ def printList():
         
         print("Textblock: "+textblock.name)
         print("")
-        for bookmark in textblock.bookmarks:
+        for bookmark in textblock.bookmarks_line_number:
             
             print("    Bookmark: "+bookmark.name)
             print("    Row number:"+str(bookmark.rowNumber))    
@@ -153,7 +176,7 @@ def bookmarkListAdd():
     if exists:
         #print("Text file does have bookmarks, use existing bookmark collection")
         textBlock = bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name]
-        bookmarkList = textBlock.bookmarks    
+        bookmarkList = textBlock.bookmarks_line_number    
         
     else:
         newTextBlock = bpy.context.scene.text_blocks.add()
@@ -164,8 +187,8 @@ def bookmarkListAdd():
     
     line_index = bpy.context.area.spaces.active.text.current_line_index
     
-    newBookmark = textBlock.bookmarks.add()
-    bookmarkList = textBlock.bookmarks
+    newBookmark = textBlock.bookmarks_line_number.add()
+    bookmarkList = textBlock.bookmarks_line_number
     
     inputBookmarkName = bpy.context.scene.bookmark_name
     
@@ -233,6 +256,11 @@ def bookmarkListMove(self):
     printList()
           
     
+    
+def bookmarkListDetect():
+    
+    print("Trying to detect bookmarks")    
+    
 
 class BOOKMARK_LIST_PT(bpy.types.Panel):
     bl_label = "Bookmarks"
@@ -268,7 +296,7 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
                 row.label(text="No bookmarks yet")
                 
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
-                for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks:   
+                for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_line_number:   
 
                     bookmarkName = bookmark.name
                      
@@ -298,6 +326,9 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             
             row = layout.row()
             row.label(text="Detection")
+            
+            row = layout.row()
+            row.operator("text.bookmark_list_detect", icon="VIEWZOOM")
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
@@ -305,7 +336,7 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
 
 
 classes = [BOOKMARK_LIST_PT, BOOKMARK_LIST_OT_add, BOOKMARK_LIST_OT_del, BOOKMARK_LIST_OT_select, BOOKMARK_LIST_OT_reorder, 
-           BOOKMARK_LIST_OT_move]
+           BOOKMARK_LIST_OT_move, BOOKMARK_LIST_OT_detect]
 
 
 def register():
