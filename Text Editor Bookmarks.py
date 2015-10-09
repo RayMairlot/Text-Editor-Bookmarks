@@ -237,7 +237,6 @@ def bookmarkListRemove(self):
         
 def bookmarkListSelect(self):
 
-    print(bookmarkList)
     for bookmark in bookmarkList:   
         print(bookmark)
         if bookmark.name == self.bookmarkName:
@@ -290,7 +289,7 @@ def bookmarkListDetect():
             print(line.body)
             
             newBookmark = textBlock.bookmarks_detection.add()
-            newBookmark.name = line.body
+            newBookmark.name = line.body.split("class",1)[1].split("(")[0]
             newBookmark.row_number = index
             bookmarkList = textBlock.bookmarks_detection
             
@@ -299,7 +298,7 @@ def bookmarkListDetect():
             print(line.body)  
             
             newBookmark = textBlock.bookmarks_detection.add()
-            newBookmark.name = line.body
+            newBookmark.name = line.body.split("def",1)[1].split("(")[0]
             newBookmark.row_number = index
             bookmarkList = textBlock.bookmarks_detection 
     
