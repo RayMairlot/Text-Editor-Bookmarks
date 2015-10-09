@@ -11,6 +11,11 @@ exists = False
 
 #bpy.context.scene.text_blocks.clear()
 
+def updateBookmarkList(self,context):
+
+    bookmarkListDetect()    
+    
+
 
 class BookmarksLineNumbersPropertiesGroup(bpy.types.PropertyGroup):
     
@@ -40,15 +45,20 @@ class textblocksPropertiesGroup(bpy.types.PropertyGroup):
 bpy.utils.register_class(textblocksPropertiesGroup)
 
 
+
 bpy.types.Scene.text_blocks = bpy.props.CollectionProperty(type=textblocksPropertiesGroup)
 
 bpy.types.Scene.bookmark_name = bpy.props.StringProperty(description="Name of the new bookmark", default="Bookmark 1")
 
 bpy.types.Scene.bookmark_type = bpy.props.EnumProperty(description = "The type of bookmark to manage", 
                                                        items = [("Line Number","Line Number","Line Number"),
-                                                              ("Detection","Detection","Detection")]       
+                                                                ("Detection","Detection","Detection")]       
                                                        )
                                                                                                       
+
+bpy.types.Scene.detect_classes = bpy.props.BoolProperty(default=True, update=updateBookmarkList)
+
+bpy.types.Scene.detect_functions = bpy.props.BoolProperty(default=True, update=updateBookmarkList)
 
 bpy.context.scene.bookmark_name = "Bookmark"
 
@@ -284,23 +294,27 @@ def bookmarkListDetect():
         
     for index, line in enumerate(bpy.data.texts['Text Editor Bookmarks.py'].lines):
     
-        if "class " in line.body and line.body[0] == "c":
-       
-            print(line.body)
+        if bpy.context.scene.detect_classes:
+    
+            if "class " in line.body and line.body[0] == "c":
+           
+                print(line.body)
+                
+                newBookmark = textBlock.bookmarks_detection.add()
+                newBookmark.name = line.body.split("class",1)[1].split("(")[0]
+                newBookmark.row_number = index
+                bookmarkList = textBlock.bookmarks_detection
+        
+        if bpy.context.scene.detect_functions:
             
-            newBookmark = textBlock.bookmarks_detection.add()
-            newBookmark.name = line.body.split("class",1)[1].split("(")[0]
-            newBookmark.row_number = index
-            bookmarkList = textBlock.bookmarks_detection
-            
-        elif "def " in line.body and line.body[0] == "d":
-            
-            print(line.body)  
-            
-            newBookmark = textBlock.bookmarks_detection.add()
-            newBookmark.name = line.body.split("def",1)[1].split("(")[0]
-            newBookmark.row_number = index
-            bookmarkList = textBlock.bookmarks_detection 
+            if "def " in line.body and line.body[0] == "d":
+                
+                print(line.body)  
+                
+                newBookmark = textBlock.bookmarks_detection.add()
+                newBookmark.name = line.body.split("def",1)[1].split("(")[0]
+                newBookmark.row_number = index
+                bookmarkList = textBlock.bookmarks_detection 
     
 
 
@@ -371,6 +385,10 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             
             row = layout.row()
             row.operator("text.bookmark_list_detect", icon="VIEWZOOM")
+            
+            row = layout.row()
+            row.prop(bpy.context.scene, "detect_classes", text="Classes")
+            row.prop(bpy.context.scene, "detect_functions", text="Functions")
             
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
                 for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
