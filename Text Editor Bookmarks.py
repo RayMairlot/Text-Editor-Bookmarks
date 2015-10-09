@@ -161,29 +161,10 @@ printList()
 
 
 def bookmarkListAdd():
-    global exists
+
     global bookmarkList
     
-    
-    for textBlock in bpy.context.scene.text_blocks:
-        if bpy.context.area.spaces.active.text.name == textBlock.name:
-            exists = True
-            break
-        else:
-            exists = False
-        
-
-    if exists:
-        #print("Text file does have bookmarks, use existing bookmark collection")
-        textBlock = bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name]
-        bookmarkList = textBlock.bookmarks_line_number    
-        
-    else:
-        newTextBlock = bpy.context.scene.text_blocks.add()
-        newTextBlock.name = bpy.context.area.spaces.active.text.name
-        #print("Text file does not have bookmarks, adding")
-        textBlock = bpy.context.scene.text_blocks[len(bpy.context.scene.text_blocks)-1]
-        
+    textBlock = detectTextblock()        
     
     line_index = bpy.context.area.spaces.active.text.current_line_index
     
@@ -210,6 +191,32 @@ def bookmarkListAdd():
     
     printList() 
 
+
+
+def detectTextblock():
+    global exists
+        
+    for textBlock in bpy.context.scene.text_blocks:
+        if bpy.context.area.spaces.active.text.name == textBlock.name:
+            exists = True
+            break
+        else:
+            exists = False
+        
+
+    if exists:
+        #print("Text file does have bookmarks, use existing bookmark collection")
+        textBlock = bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name]
+        bookmarkList = textBlock.bookmarks_line_number    
+        
+    else:
+        newTextBlock = bpy.context.scene.text_blocks.add()
+        newTextBlock.name = bpy.context.area.spaces.active.text.name
+        #print("Text file does not have bookmarks, adding")
+        textBlock = bpy.context.scene.text_blocks[len(bpy.context.scene.text_blocks)-1]
+        
+    return textBlock
+    
     
     
 def bookmarkListRemove(self):
@@ -259,8 +266,33 @@ def bookmarkListMove(self):
     
 def bookmarkListDetect():
     
-    print("Trying to detect bookmarks")    
+    textBlock = detectTextblock()
     
+    print("Trying to detect bookmarks")
+    print("") 
+    
+    textBlock.bookmarks_detection.clear()
+        
+    for index, line in enumerate(bpy.data.texts['Text Editor Bookmarks.py'].lines):
+    
+        if "class " in line.body and line.body[0] == "c":
+       
+            print(line.body)
+            
+            newBookmark = textBlock.bookmarks_detection.add()
+            newBookmark.name = line.body
+            newBookmark.row_number = index
+            bookmarkList = textBlock.bookmarks_detection
+            
+        elif "def " in line.body and line.body[0] == "d":
+            
+            print(line.body)  
+            
+            newBookmark = textBlock.bookmarks_detection.add()
+            newBookmark.name = line.body
+            bookmarkList = textBlock.bookmarks_detection 
+    
+
 
 class BOOKMARK_LIST_PT(bpy.types.Panel):
     bl_label = "Bookmarks"
@@ -323,12 +355,20 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             row.operator('text.bookmark_list_reorder',text = reorderingLabel, icon="SEQ_SEQUENCER")                          
         
         elif bpy.context.scene.bookmark_type == "Detection":
-            
+                        
             row = layout.row()
             row.label(text="Detection")
             
             row = layout.row()
             row.operator("text.bookmark_list_detect", icon="VIEWZOOM")
+            
+            if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
+                for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
+                    
+                    bookmarkName = bookmark.name                                         
+                    
+                    row = layout.row(align=True)
+                    row.operator('text.bookmark_list_select',text = bookmarkName)   
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
