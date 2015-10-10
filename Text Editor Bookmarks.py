@@ -30,7 +30,8 @@ class detectionBookmarksPropertiesGroup(bpy.types.PropertyGroup):
     
     row_number = bpy.props.IntProperty()
     detection_string = bpy.props.StringProperty()
-    indented = bpy.props.BoolProperty()    
+    indented = bpy.props.BoolProperty()
+    name_short = bpy.props.StringProperty()    
     
     
 bpy.utils.register_class(detectionBookmarksPropertiesGroup)
@@ -65,6 +66,8 @@ bpy.types.Scene.detect_functions = bpy.props.BoolProperty(default=True, update=u
 bpy.types.Scene.show_row_numbers = bpy.props.BoolProperty(default=False)
 
 bpy.types.Scene.display_flat = bpy.props.BoolProperty(default=False)
+
+bpy.types.Scene.display_prefix = bpy.props.BoolProperty(default=True)
 
 bpy.context.scene.bookmark_name = "Bookmark"
 
@@ -320,7 +323,8 @@ def newDetectedBookmark(textBlock, line, index, type):
     print(line.body)  
 
     newBookmark = textBlock.bookmarks_detection.add()
-    newBookmark.name = line.body.split(type,1)[1].split("(")[0]
+    newBookmark.name = line.body.split("(")[0]
+    newBookmark.name_short = line.body.split(type,1)[1].split("(")[0]
     newBookmark.row_number = index
     newBookmark.detection_string = line.body
     
@@ -413,12 +417,21 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             row.prop(bpy.context.scene, "display_flat", text="Flat")
             
             row = layout.row()
+            row.prop(bpy.context.scene, "display_prefix", text="Prefix")
+            
+            row = layout.row()
             row.label(text="Bookmarks:")
             
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
                 for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
-                                        
-                    bookmarkName = bookmark.name                                         
+                                                            
+                    if bpy.context.scene.display_prefix:
+                            
+                        bookmarkName = bookmark.name                                         
+                        
+                    else:
+                    
+                        bookmarkName = bookmark.name_short
                     
                     if bpy.context.scene.show_row_numbers:
                                                 
