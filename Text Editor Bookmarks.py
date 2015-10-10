@@ -29,7 +29,8 @@ bpy.utils.register_class(BookmarksLineNumbersPropertiesGroup)
 class detectionBookmarksPropertiesGroup(bpy.types.PropertyGroup):
     
     row_number = bpy.props.IntProperty()
-    detection_string = bpy.props.StringProperty()    
+    detection_string = bpy.props.StringProperty()
+    indented = bpy.props.BoolProperty()    
     
     
 bpy.utils.register_class(detectionBookmarksPropertiesGroup)
@@ -320,6 +321,12 @@ def newDetectedBookmark(textBlock, line, index, type):
     newBookmark.name = line.body.split(type,1)[1].split("(")[0]
     newBookmark.row_number = index
     newBookmark.detection_string = line.body
+    
+    if line.body[0] == " ":
+        newBookmark.indented = True
+    else:
+        newBookmark.indented = False
+        
     bookmarkList = textBlock.bookmarks_detection 
     
     
@@ -411,14 +418,32 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
                     bookmarkName = bookmark.name                                         
                     
                     if bpy.context.scene.show_row_numbers:
-                        split = layout.split(0.15)
-                        col = split.row()
-                        col.label(text=str(bookmark.row_number))
-                        col = split.row()
-                        col.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName
+                                                
+                        split = layout.split(percentage=0.15)
+                        row = split.row()
+                        row.label(text=str(bookmark.row_number))                      
+                        
+                        if bookmark.indented:
+                            row = split.row()
+                            row.label(text="")
+                        
+                        row = split.row()
+                        row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName
+                    
                     else:
-                        row = layout.row()    
-                        row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
+                        
+                        if bookmark.indented:
+                            split = layout.split(percentage=0.2)
+                            row = split.row()
+                            row.label(text="")
+                                
+                            row = split.row()
+                            row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName      
+                            
+                        else:
+                            
+                            row = layout.row()
+                            row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
