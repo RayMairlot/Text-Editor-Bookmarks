@@ -64,6 +64,8 @@ bpy.types.Scene.detect_functions = bpy.props.BoolProperty(default=True, update=u
 
 bpy.types.Scene.show_row_numbers = bpy.props.BoolProperty(default=False)
 
+bpy.types.Scene.display_flat = bpy.props.BoolProperty(default=False)
+
 bpy.context.scene.bookmark_name = "Bookmark"
 
 
@@ -407,7 +409,8 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             row.prop(bpy.context.scene, "detect_functions", text="Functions")
             
             row = layout.row()
-            row.prop(bpy.context.scene, "show_row_numbers", text="Show Row Numbers")
+            row.prop(bpy.context.scene, "show_row_numbers", text="Row Numbers")
+            row.prop(bpy.context.scene, "display_flat", text="Flat")
             
             row = layout.row()
             row.label(text="Bookmarks:")
@@ -423,7 +426,7 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
                         row = split.row()
                         row.label(text=str(bookmark.row_number))                      
                         
-                        if bookmark.indented:
+                        if bookmark.indented and not bpy.context.scene.display_flat:
                             row = split.row()
                             row.label(text="")
                         
@@ -432,7 +435,7 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
                     
                     else:
                         
-                        if bookmark.indented:
+                        if bookmark.indented and not bpy.context.scene.display_flat:
                             split = layout.split(percentage=0.2)
                             row = split.row()
                             row.label(text="")
