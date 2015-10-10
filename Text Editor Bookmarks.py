@@ -295,16 +295,18 @@ def bookmarkListDetect():
     textBlock.bookmarks_detection.clear()
         
     for index, line in enumerate(bpy.data.texts['Text Editor Bookmarks.py'].lines):
-    
+        
+        lineWithoutSpaces = line.body.replace(" ","")
+        
         if bpy.context.scene.detect_classes:
     
-            if "class " in line.body and line.body[0] == "c":
+            if "class " in line.body and lineWithoutSpaces[0] == "c":
            
                 newDetectedBookmark(textBlock, line, index, "class")
-        
+                                        
         if bpy.context.scene.detect_functions:
             
-            if "def " in line.body and line.body[0] == "d":
+            if "def " in line.body and lineWithoutSpaces[0] == "d":
                 
                 newDetectedBookmark(textBlock, line, index, "def")
                 
@@ -406,11 +408,10 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
                 for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
                                         
-                    
                     bookmarkName = bookmark.name                                         
                     
                     if bpy.context.scene.show_row_numbers:
-                        split = layout.split(0.20)
+                        split = layout.split(0.15)
                         col = split.row()
                         col.label(text=str(bookmark.row_number))
                         col = split.row()
