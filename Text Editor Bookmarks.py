@@ -69,6 +69,8 @@ bpy.types.Scene.display_flat = bpy.props.BoolProperty(default=False)
 
 bpy.types.Scene.display_prefix = bpy.props.BoolProperty(default=True)
 
+bpy.types.Scene.bookmark_filter = bpy.props.StringProperty()
+
 bpy.context.scene.bookmark_name = "Bookmark"
 
 
@@ -409,6 +411,9 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             row.label(text="Options:")
             
             row = layout.row()
+            row.prop(bpy.context.scene, "bookmark_filter", text="Filter", icon="FILTER")
+            
+            row = layout.row()
             row.prop(bpy.context.scene, "detect_classes", text="Classes")
             row.prop(bpy.context.scene, "detect_functions", text="Functions")
             
@@ -424,42 +429,44 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
                 for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
-                                                            
-                    if bpy.context.scene.display_prefix:
-                            
-                        bookmarkName = bookmark.name                                         
-                        
-                    else:
                     
-                        bookmarkName = bookmark.name_short
-                    
-                    if bpy.context.scene.show_row_numbers:
-                                                
-                        split = layout.split(percentage=0.15)
-                        row = split.row()
-                        row.label(text=str(bookmark.row_number))                      
-                        
-                        if bookmark.indented and not bpy.context.scene.display_flat:
-                            row = split.row()
-                            row.label(text="")
-                        
-                        row = split.row()
-                        row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName
-                    
-                    else:
-                        
-                        if bookmark.indented and not bpy.context.scene.display_flat:
-                            split = layout.split(percentage=0.2)
-                            row = split.row()
-                            row.label(text="")
+                    if bpy.context.scene.bookmark_filter in bookmark.name or bpy.context.scene.bookmark_filter == "":
+                                                                
+                        if bpy.context.scene.display_prefix:
                                 
-                            row = split.row()
-                            row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName      
+                            bookmarkName = bookmark.name                                         
                             
                         else:
+                        
+                            bookmarkName = bookmark.name_short
+                        
+                        if bpy.context.scene.show_row_numbers:
+                                                    
+                            split = layout.split(percentage=0.15)
+                            row = split.row()
+                            row.label(text=str(bookmark.row_number))                      
                             
-                            row = layout.row()
-                            row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
+                            if bookmark.indented and not bpy.context.scene.display_flat:
+                                row = split.row()
+                                row.label(text="")
+                            
+                            row = split.row()
+                            row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName
+                        
+                        else:
+                            
+                            if bookmark.indented and not bpy.context.scene.display_flat:
+                                split = layout.split(percentage=0.2)
+                                row = split.row()
+                                row.label(text="")
+                                    
+                                row = split.row()
+                                row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName      
+                                
+                            else:
+                                
+                                row = layout.row()
+                                row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
