@@ -57,8 +57,7 @@ bpy.types.Scene.bookmark_type = bpy.props.EnumProperty(description = "The type o
                                                        items = [("Line Number","Line Number","Line Number"),
                                                                 ("Detection","Detection","Detection")]       
                                                        )
-                                                                                                      
-
+                                                                                                                                                                                                       
 bpy.types.Scene.detect_classes = bpy.props.BoolProperty(default=True, update=updateBookmarkList)
 
 bpy.types.Scene.detect_functions = bpy.props.BoolProperty(default=True, update=updateBookmarkList)
@@ -69,7 +68,7 @@ bpy.types.Scene.display_flat = bpy.props.BoolProperty(default=False)
 
 bpy.types.Scene.display_prefix = bpy.props.BoolProperty(default=True)
 
-bpy.types.Scene.bookmark_filter = bpy.props.StringProperty()
+bpy.types.Scene.bookmark_filter = bpy.props.StringProperty(options={"TEXTEDIT_UPDATE"})
 
 bpy.context.scene.bookmark_name = "Bookmark"
 
