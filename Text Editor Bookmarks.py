@@ -297,7 +297,7 @@ def bookmarkListDetect():
     
     textBlock.bookmarks_detection.clear()
         
-    for index, line in enumerate(bpy.data.texts['Text Editor Bookmarks.py'].lines):
+    for index, line in enumerate(bpy.context.area.spaces.active.text.lines):
         
         lineWithoutSpaces = line.body.replace(" ","")
         
