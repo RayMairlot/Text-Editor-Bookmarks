@@ -61,6 +61,8 @@ bpy.types.Scene.detect_classes = bpy.props.BoolProperty(default=True, update=upd
 
 bpy.types.Scene.detect_functions = bpy.props.BoolProperty(default=True, update=updateBookmarkList)
 
+bpy.types.Scene.show_row_numbers = bpy.props.BoolProperty(default=False)
+
 bpy.context.scene.bookmark_name = "Bookmark"
 
 
@@ -389,19 +391,33 @@ class BOOKMARK_LIST_PT(bpy.types.Panel):
             row.operator("text.bookmark_list_detect", icon="VIEWZOOM")
             
             row = layout.row()
+            row.label(text="Options:")
+            
+            row = layout.row()
             row.prop(bpy.context.scene, "detect_classes", text="Classes")
             row.prop(bpy.context.scene, "detect_functions", text="Functions")
+            
+            row = layout.row()
+            row.prop(bpy.context.scene, "show_row_numbers", text="Show Row Numbers")
             
             row = layout.row()
             row.label(text="Bookmarks:")
             
             if bpy.context.area.spaces.active.text.name in bpy.context.scene.text_blocks:        
                 for bookmark in bpy.context.scene.text_blocks[bpy.context.area.spaces.active.text.name].bookmarks_detection:   
+                                        
                     
                     bookmarkName = bookmark.name                                         
                     
-                    row = layout.row(align=True)
-                    row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
+                    if bpy.context.scene.show_row_numbers:
+                        split = layout.split(0.20)
+                        col = split.row()
+                        col.label(text=str(bookmark.row_number))
+                        col = split.row()
+                        col.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName
+                    else:
+                        row = layout.row()    
+                        row.operator('text.bookmark_list_select',text = bookmarkName).bookmarkName = bookmarkName  
         
         row = layout.row()
         row.label(text="Rows: "+str(len(bpy.data.screens['Default.001'].areas[0].spaces[0].text.lines)))
